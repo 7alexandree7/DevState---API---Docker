@@ -156,3 +156,55 @@ const envSchema = z.object({
 export const env = envSchema.parse(process.env)
 ```
 
+
+## Biomejs 
+1. é uma ferramenta de desenvolvimento moderna, rápida e "tudo em um" (all-in-one) projetada para projetos web, funcionando como um substituto de alto desempenho para o ESLint e o Prettier. Escrito em Rust, ele oferece formatação de código e análise estática (linting) para JavaScript, TypeScript, JSX, JSON, CSS e GraphQL com uma velocidade significativamente superior às ferramentas tradicionais baseadas em JavaScript. 
+   
+2. Instalar a extensão do Biome
+3. Baixar a lib em desenvolvimento no projeto ```@biomejs/biome -D```
+4. Dentro do Projeto criar uma pasta .vscode
+   - um arquivo settings.json
+```
+{
+  "editor.formatOnSave": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "editor.codeActionsOnSave": {
+    "source.organizeImports.biome": "explicit"
+  }
+}
+```
+
+5. Criar um Biome.json
+```
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+
+   "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 80
+  },
+
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "jsxQuoteStyle": "double",
+      "trailingCommas": "all",
+      "semicolons": "asNeeded",
+      "arrowParentheses": "asNeeded",
+      "bracketSpacing": true
+    }
+  },
+
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
+  }
+
+}
+```
