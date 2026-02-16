@@ -21,6 +21,7 @@
 7. fastify-type-provider-zod
 8. @fastify/swagger
 9. @fastify/swagger-ui
+10. @biomejs/biome -D
 
 
 ## ⚙️ Config
@@ -106,13 +107,17 @@ app.register(fastifySwaggerUi, { routePrefix: "/docs" })
    -   - Então ela automaticamente ganha tipagem + validação
   
   ```
+  
   import { z } from "zod"
-import { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
+  import { FastifyPluginAsyncZod } from "fastify-type-provider-zod"
 
-export const subscribeToEventRoute: FastifyPluginAsyncZod = async (app) => {
+  export const subscribeToEventRoute: FastifyPluginAsyncZod = async (app) => {
 
     app.post("/subscriptions", {
         schema: {
+            summary: "Subscribe to an event",
+            tags: ["Subscription"],
+            description: "Subscribe to an event",
             body: z.object({
                 name: z.string(),
                 email: z.email()
@@ -129,6 +134,25 @@ export const subscribeToEventRoute: FastifyPluginAsyncZod = async (app) => {
 
         return reply.status(201).send({ name, email })
     })
-}
-
+  }
   ```
+
+## 🔏 ENV
+
+1. O node por padrão ja consegue ler variáveis de ambiente
+   - ```  "dev": "tsx watch --env-file=.env src/server.ts"  ```
+
+2. Criar um arquivo para a validação / criação de schema para as variáveis de ambiente
+   - no lugar de ``` app.listen({ port: 3333 }) ```
+   - Use ``` app.listen({ port: env.PORT }) ```
+
+```
+import { z } from "zod";
+
+const envSchema = z.object({
+    PORT: z.coerce.number().default(3333)
+})
+
+export const env = envSchema.parse(process.env)
+```
+
