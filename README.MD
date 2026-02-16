@@ -31,7 +31,7 @@
 
 ## 🛡️ Zod
 
-1. import { validatorCompiler, serializerCompiler } from "fastify-type-provider-zod"
+1. import { validatorCompiler, serializerCompiler, ZodTypeProvider } from "fastify-type-provider-zod"
   - validatorCompiler Determina qual que é o formato de entrada de dados em cada rota
   - serializerCompiler E a forma de transformar os dados na hora de enviar ao front-end
   - app.setValidatorCompiler(validatorCompiler);
