@@ -274,14 +274,14 @@ export const db = drizzle(pg, {
 
 3. Criação de Schemas
    - Criar uma pasta Schema e um arquivo para cada tabela
-4. Utilizar o `pgTable` para a criação da tabela, definindo um nome como parametro, e um objeto para os elementos da tabela
-5. `.uui()` define a coluna como UUID (identificador único).
-6. `.primaryKey()` marca essa coluna como chave primária da tabela.
-7. `.defaultRandom()` gera automaticamente um UUID aleatório ao inserir um novo registro.
-8. `.notNull()` obriga que essa coluna sempre tenha valor (não pode ser null).
-9. `.unique()` garante que não existam valores repetidos nessa coluna (ex: e-mail único)
-10. `timestamp("created_at")` cria uma coluna de data/hora.
-11. `.defaultNow()` define automaticamente a data/hora atual ao criar o registro.
+   - Utilizar o `pgTable` para a criação da tabela, definindo um nome como parametro, e um objeto para os elementos da tabela
+   - `.uui()` define a coluna como UUID (identificador único).
+    - `.primaryKey()` marca essa coluna como chave primária da tabela.
+    - `.defaultRandom()` gera automaticamente um UUID aleatório ao inserir um novo registro.
+    - `.notNull()` obriga que essa coluna sempre tenha valor (não pode ser null).
+   - `.unique()` garante que não existam valores repetidos nessa coluna (ex: e-mail único)
+   - `timestamp("created_at")` cria uma coluna de data/hora.
+   - `.defaultNow()` define automaticamente a data/hora atual ao criar o registro.
 
 
 ```
@@ -296,4 +296,75 @@ export const subscriptions = pgTable('subscriptions', {
 
 export type Subscription = typeof subscriptions
 
+```
+
+4. Criar realmente a tabela no nosso banco de dados
+5. Criar um arquivo na raiz drizzle.config.ts
+   - Utilizar o Config do `drizzle-kit` → importa só o tipo de configuração do Drizzle (não vai pro runtime).
+   - `import { env }` → importa as variáveis de ambiente (URL do banco).
+   - Utilizar um export default passando um objeto com algumas propiedades
+      - `schema:`: `"./src/drizzle/schema/*"`  → caminho onde estão os arquivos das tabelas.
+      - `out`: `"./src/drizzle/migrations"` → pasta onde serão geradas as migrations.
+      - `dialect`: `'postgresql'` → define o banco usado (PostgreSQL).
+      - `dbCredentials`: `{ url:  env.POSTGRES_URL}` → garante que o objeto segue o padrão correto do Drizzle.
+
+
+```
+import type { Config } from 'drizzle-kit' 
+import { env } from './src/env'
+
+export default {
+  schema: './src/drizzle/schema/*',
+  out: './src/drizzle/migrations',
+  dialect: 'postgresql',
+  dbCredentials: {
+    url: env.POSTGRES_URL,
+  },
+} satisfies Config
+
+```
+
+6. Rodar o comando `npx drizzle-kit generate` → gera o arquivo de migration com base nas mudanças do schema.
+7. Rodar o comando `npx drizzle-kit migrate`  → aplica as migrations no banco de dados.
+
+
+
+## Funcionalidades da nossa aplicação
+
+1. Criar dentro de src uma pasta functions 
+2. Passando o nome de cada funcionalidade 
+3. A primeira é a Realização de uma nova inscrição pelo usúario
+   - Criar um arquivo chamado `subscribe-to-event-route.ts`
+   - Criar uma interface passando o name e email
+   - Criar uma função asyncrona passando os parametros e a tipagem
+   - Criar uma variavel result, utilizando o await e com o `db` utlizar o `insert` do nosso `subscriptions` q vem do schema, passando os `.values(name, email)`
+   - utilizar o returning() para retornar um objeto inteiro
+
+```
+import { db } from "../drizzle/client";
+import {subscriptions} from "../drizzle/schema/subscriptions"
+
+interface SubscriptionToEventParams {
+    name: string;
+    email: string;
+}
+
+export async function subscribeToEvent({name, email}: SubscriptionToEventParams) {
+
+    const result = await db.insert(subscriptions).values({
+        name,
+        email
+    }).returning()
+
+    const subscriber = result[0]
+
+    return {
+        subscriberId: subscriber.id
+    }
+}
+```
+   - Chamando na rota de POST de subscription
+```
+    const {subscriberId } = await subscribeToEvent({name, email})
+    return reply.status(201).send({ name, email, subscriberId })
 ```
