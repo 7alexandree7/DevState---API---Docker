@@ -61,6 +61,27 @@
    - E dentro do objeto definimos a tipagem que esparamos receber
    - Na instancia do fastify usamos isso .withTypeProvider<ZodTypeProvider>()
 
+4. Types 
+   - `z.string()` → valida que o valor é uma string
+   - `z.number()` → valida que o valor é um número
+   - `z.boolean()` → valida true ou false
+   - `z.object()` → valida um objeto com estrutura definida
+   - `z.array()` → valida uma lista (array) de valores
+   - `z.enum()` → valida valores fixos (ex: "admin" | "user")
+   - `z.optional()` → torna o campo opcional (pode não existir)
+   - `z.nullable()` → permite que o valor seja null
+   - `z.nullish()` → permite null ou undefined
+   - `z.string().email()` → valida se é um email válido
+   - `z.string().url()` → valida se é uma URL válida
+   - `z.string().uuid()` → valida se é um UUID válido
+   - `z.string().min()/max()` → define tamanho mínimo/máximo de string
+   - `z.number().min()/max()` → define valor mínimo/máximo numérico
+   - `z.coerce.string()` → converte automaticamente o valor para string antes de validar
+   - `z.coerce.number()` → converte automaticamente para número (ex: "10" → 10)
+   - `z.coerce.boolean()` → converte valores para boolean (ex: "true" → true)
+   - `z.coerce.date()` → converte para Date (ex: string de data → objeto Date)
+
+
 
 ## 🌐 Testing API Routes
 
@@ -237,6 +258,8 @@ export const env = envSchema.parse(process.env)
 3. Conexão
 4. Metodos
    - `redis.hincrby(...)` 👉 Incrementa um número dentro de um hash no Redis
+   - `redis.hget(...)` 👉 Busca o valor de um campo específico dentro de um hash no Redis
+   - `redis.zincrby(...)`
 ```
 import { Redis } from 'ioredis'
 import { env } from '../env'
@@ -329,8 +352,19 @@ export default {
 
 6. Rodar o comando `npx drizzle-kit generate` → gera o arquivo de migration com base nas mudanças do schema.
 7. Rodar o comando `npx drizzle-kit migrate`  → aplica as migrations no banco de dados.
+8. querys com Drizzle e seus metodos
+```
+Example Basic query 
 
+    const subscribers = await db.select()
+        .from(subscriptions)
+        .where(eq(subscriptions.email, email))
 
+```
+  - `select()` → Define quais dados/colunas você quer buscar no banco
+  - `from()` → Define de qual tabela os dados serão buscados
+  - `where()` → Aplica um filtro na consulta
+  - `eq()` → Compara se um campo é igual a um valor (= no SQL)
 
 ## Funcionalidades da nossa aplicação
 
@@ -394,3 +428,30 @@ export async function subscribeToEvent({name, email}: SubscriptionToEventParams)
    -  - Usuário acessa `/invites/:subscriberId`
    -  - Backend registra +1 acesso no Redis
    -  - Backend redireciona pro front com ?referrer=ID
+
+
+5. Terceira funcionalidade é buscar quantidade de acessos no link (Redis)
+   - Essa funcionalidade serve para mostrar quantas vezes o link de convite foi acessado
+   - O backend consulta o Redis e retorna o número de cliques daquele usuário
+   - `const { subscriberId } = request.params` → Pega o ID da URL
+   - `await getSubscriberInviteLink(...)` → Chama a função que busca os dados no Redis
+   - `return { subscriberId, count }` → Retorna o ID + quantidade de acessos
+   - 🧩 Resumão geral (nível visão de produto)
+   -  - Usuário acessa `/subscribers/:subscriberId/ranking/clicks`
+   -  Backend busca no Redis quantos acessos esse link teve
+   -  Backend retorna:
+   -  - subscriberId
+   -  `count` (quantidade de cliques)
+
+6. Quarta funcionalidade é inscrição com sistema de indicação (referrer)
+   - Essa funcionalidade permite que um usuário se inscreva usando o link de outra pessoa (indicação)
+   - Se houver um `referrer`, o sistema registra isso e aumenta o ranking de quem indicou
+   - `const { name, email, referrer } = request.body` → Pega os dados do corpo da requisição
+   - `await subscribeToEvent(...)` → Chama a função que cria a inscrição no banco
+   - referrer → ID de quem indicou (vem da URL do frontend, tipo ?referrer=ID)
+   - `reply.status(201).send(...)` → Retorna o ID do novo inscrito
+   - Usuário se inscreve em /subscriptions
+   - Pode vir com ?referrer=ID (indicação)
+   - Backend cria o usuário no banco
+   - Se tiver indicação, soma +1 no ranking do indicador no Redis
+   - Backend retorna o subscriberId criado 
