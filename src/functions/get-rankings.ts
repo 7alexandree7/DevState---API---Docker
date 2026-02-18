@@ -1,7 +1,7 @@
 import { inArray } from 'drizzle-orm'
 import { db } from '../drizzle/client'
 import { redis } from '../redis/client'
-import { schema } from '../drizzle/schema'
+import { subscriptions } from '../drizzle/schema/subscriptions'
 
 export async function getRanking() {
   const topThree = await redis.zrevrange('referral:ranking', 0, 2, 'WITHSCORES')
@@ -13,8 +13,8 @@ export async function getRanking() {
 
   const subscribersFromRanking = await db
     .select()
-    .from(schema.subscriptions)
-    .where(inArray(schema.subscriptions.id, Object.keys(ranking)))
+    .from(subscriptions)
+    .where(inArray(subscriptions.id, Object.keys(ranking)))
 
   const rankingWithScores = subscribersFromRanking
     .map(subscriber => {
