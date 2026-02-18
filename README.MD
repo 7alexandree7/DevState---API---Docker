@@ -259,7 +259,8 @@ export const env = envSchema.parse(process.env)
 4. Metodos
    - `redis.hincrby(...)` 👉 Incrementa um número dentro de um hash no Redis
    - `redis.hget(...)` 👉 Busca o valor de um campo específico dentro de um hash no Redis
-   - `redis.zincrby(...)`
+   - `redis.zincrby(...)` 👉 Incrementa a pontuação (score) de um membro em um Sorted Set (ranking)
+   - `redis.zscore` 👉 Retorna a pontuação (score) atual de um membro dentro do Sorted Set
 ```
 import { Redis } from 'ioredis'
 import { env } from '../env'
@@ -455,3 +456,20 @@ export async function subscribeToEvent({name, email}: SubscriptionToEventParams)
    - Backend cria o usuário no banco
    - Se tiver indicação, soma +1 no ranking do indicador no Redis
    - Backend retorna o subscriberId criado 
+
+7. Quinta funcionalidade é buscar quantidade de convites convertidos (ranking no Redis)
+   - Essa funcionalidade serve para mostrar quantas pessoas se cadastraram usando o link de um usuário
+   - Aqui usamos um Sorted Set (ranking) no Redis, onde cada usuário tem uma pontuação (score)
+   - `const { subscriberId } = request.params` → Pega o ID da URL
+   - `await getSubscriberInviteCount(...)` → Chama a função que busca o score no Redis
+   - `return { count }` → Retorna a quantidade de convites convertidos
+   - 🧠 Função getSubscriberInviteCount
+   - → Função que busca o total no ranking
+   - `redis.zscore(...)` → Busca a pontuação (score) do usuário no ranking
+   - `"referral:ranking"` → Nome do Sorted Set no Redis
+   - `subscriberId` → Membro dentro do ranking
+   - → `Number.parseInt(count)` → Converte o valor retornado (string) para número
+   - Usuário acessa `/subscribers/:subscriberId/ranking/count`
+   - Backend consulta o ranking no Redis
+   - Backend retorna:
+   - count (quantidade de pessoas que se cadastraram com o link dele)
