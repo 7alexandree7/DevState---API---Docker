@@ -1,5 +1,4 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
-import { getSubscriberInviteClick } from '../functions/get-subscriber-invite-click'
 import { z } from 'zod'
 import { getSubscriberInviteCount } from '../functions/get-subscriber-invites-count'
 
