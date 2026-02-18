@@ -11,6 +11,7 @@ import {
 import { env } from './env'
 import { accessInviteLinkRoute } from './routes/access-invite-link-route'
 import { subscribeToEventRoute } from './routes/subscribe-to-event-route'
+import { getSubscriberInviteLinkRoute } from './routes/get-subscriber-invite-link-route'
 
 
 
@@ -36,6 +37,7 @@ app.register(fastifySwaggerUi, { routePrefix: '/docs' })
 
 app.register(subscribeToEventRoute)
 app.register(accessInviteLinkRoute)
+app.register(getSubscriberInviteLinkRoute)
 
 
 app.listen({ port: env.PORT }).then(() => {
