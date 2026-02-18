@@ -2,11 +2,16 @@ POST http://localhost:3333/subscriptions
 Content-Type: application/json
 
 {
-    "name": "Unfast uk",
-    "email": "unfastuk123@gmail.com"
+    "name": "diego",
+    "email": "didi123@gmail.com"
 }
 
 
 ###
 
-GET http://localhost:3333/invites/ayo123
+GET http://localhost:3333/invites/diego1234
+
+
+###
+
+GET http://localhost:3333/subscribers/diego1234/ranking/clicks
