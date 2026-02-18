@@ -169,6 +169,7 @@ const envSchema = z.object({
    PORT: z.coerce.number().default(3333),
    POSTGRES_URL: z.url(),
    REDIS_URL: z.url(),
+   WEB_URL: z.url(),
 })
 
 export const env = envSchema.parse(process.env)
@@ -234,6 +235,8 @@ export const env = envSchema.parse(process.env)
 1. Criar uma pasta redis, com um arquivo clinet.ts para fazer a conexãp
 2. Instalar a lib ioredis
 3. Conexão
+4. Metodos
+   - `redis.hincrby(...)` 👉 Incrementa um número dentro de um hash no Redis
 ```
 import { Redis } from 'ioredis'
 import { env } from '../env'
@@ -333,6 +336,7 @@ export default {
 
 1. Criar dentro de src uma pasta functions 
 2. Passando o nome de cada funcionalidade 
+
 3. A primeira é a Realização de uma nova inscrição pelo usúario
    - Criar um arquivo chamado `subscribe-to-event-route.ts`
    - Criar uma interface passando o name e email
@@ -367,4 +371,26 @@ export async function subscribeToEvent({name, email}: SubscriptionToEventParams)
 ```
     const {subscriberId } = await subscribeToEvent({name, email})
     return reply.status(201).send({ name, email, subscriberId })
+
 ```
+
+4. Segunda funcionalidade é usando o redis, de acesso ao link
+   - Quando o usúario se inscrever ele vai ser redirecionado para uma pagina
+   - la ele vai ter um link gerado pelo back-end o seu link de convite
+   - E nossa função nessa rota é incremetar sempre +1 para o dono do link q foi aberto
+   - `const { subscriberId } = request.params` → Pega o ID da URL
+   - `await accessInviteLink(...)` → Chama a função que registra o acesso
+   - `new URL(env.WEB_URL)` → Cria uma URL base do frontend
+   - `url.searchParams.set("referrer", subscriberId)` → Adiciona o ID como query param
+   - `reply.redirect(url.toString(), 302)` → Redireciona o usuário (redirect temporário)
+   - 🧠 Função accessInviteLink
+   -  - `interface AccessInviteLinkParams` → Define o tipo dos parâmetros
+   -  - `async function accessInviteLink(...)` → Função que registra o clique no convite
+   -  - `redis.hincrby(...)` → Incrementa +1 no contador daquele subscriberId no Redis
+   -  - `"referral:access-count"` → Nome da "tabela/hash" no Redis
+   -  - `subscriberId` → Campo dentro do hash
+   -  - `1` 1 → Incremento de +1
+   - 🧩 Resumão geral (nível visão de produto)
+   -  - Usuário acessa `/invites/:subscriberId`
+   -  - Backend registra +1 acesso no Redis
+   -  - Backend redireciona pro front com ?referrer=ID
